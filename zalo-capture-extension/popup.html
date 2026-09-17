@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Thu thập tri thức</title>
+<style>
+  body { font-family: -apple-system, "Segoe UI", sans-serif; width: 360px; padding: 12px; font-size: 13px; color: #1a1a1a; }
+  h1 { font-size: 14px; margin: 0 0 10px; }
+  label { display: block; font-size: 11.5px; color: #555; margin: 10px 0 3px; }
+  textarea, select, input { width: 100%; box-sizing: border-box; font-family: inherit; font-size: 12.5px; padding: 6px; border: 1px solid #ccc; border-radius: 5px; }
+  textarea { resize: vertical; min-height: 90px; }
+  button { margin-top: 12px; width: 100%; padding: 8px; border: none; border-radius: 5px; background: #1f8073; color: #fff; font-size: 13px; cursor: pointer; }
+  button:disabled { background: #999; cursor: default; }
+  button.secondary { background: #eee; color: #333; margin-top: 6px; }
+  #status { margin-top: 10px; font-size: 12px; min-height: 16px; }
+  #status.error { color: #b5251f; }
+  #status.ok { color: #1f8073; }
+  #status.warn { color: #96650f; }
+  details { margin-top: 10px; }
+  summary { cursor: pointer; font-size: 11.5px; color: #666; }
+  .warn { font-size: 11px; color: #96650f; background: #fdf3df; border-radius: 5px; padding: 6px 8px; margin-top: 8px; }
+  #images { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+  .image-item { display: flex; align-items: center; gap: 8px; border: 1px solid #eee; border-radius: 6px; padding: 6px; }
+  .image-item img { width: 48px; height: 48px; object-fit: cover; border-radius: 4px; flex: none; }
+  .image-item button { width: auto; margin: 0; padding: 5px 8px; font-size: 11.5px; flex: none; }
+  .image-item .img-status { font-size: 11px; color: #666; }
+  #threadStatus { margin: 0 0 10px; padding: 6px 8px; border-radius: 5px; font-size: 12px; display: none; }
+  #threadStatus.captured { display: block; background: #e6f4ea; color: #1e6b3c; }
+  #threadStatus.not_captured { display: block; background: #fdeaea; color: #a02622; }
+  #threadStatus.unknown { display: block; background: #f0f0f0; color: #666; }
+  #coverageStatus { margin: 0 0 10px; padding: 6px 8px; border-radius: 5px; font-size: 12px; display: none; }
+  #coverageStatus.ok { display: block; background: #e6f4ea; color: #1e6b3c; }
+  #coverageStatus.warn { display: block; background: #fdf3df; color: #96650f; }
+  #coverageStatus.unknown { display: block; background: #f0f0f0; color: #666; }
+</style>
+</head>
+<body>
+  <h1>📥 Thu thập tri thức</h1>
+
+  <div id="threadStatus"></div>
+  <div id="coverageStatus"></div>
+
+  <label for="text">Nội dung đã bôi đen (có thể sửa/xoá tên người khác trước khi lưu)</label>
+  <textarea id="text" placeholder="Bôi đen đoạn muốn lưu trên trang, rồi mở lại popup này…"></textarea>
+
+  <button id="readThread" class="secondary" type="button">📖 Đọc các tin đang hiển thị (không cần bôi đen)</button>
+  <div class="warn">Chỉ đọc tin Zalo Web đã tải sẵn trong khung chat tại thời điểm bấm (không phải toàn bộ lịch sử) — cuộn lên trước nếu muốn lấy nhiều hơn.</div>
+
+  <label for="tenant">Tenant (org/workspace)</label>
+  <select id="tenant"><option value="">Đang tải…</option></select>
+
+  <label for="folder">Lưu vào dự án</label>
+  <select id="folder"><option value="">Đang tải…</option></select>
+
+  <div class="warn">Nội dung sẽ được đánh dấu <strong>confidential</strong> — không gửi cloud API, không hiển thị cho người khác qua API.</div>
+
+  <label>Ảnh tìm thấy trong vùng chọn (OCR local, không qua cloud)</label>
+  <div id="images"></div>
+
+  <button id="save">Lưu vào tri thức</button>
+  <div id="status"></div>
+
+  <details>
+    <summary>Cấu hình server</summary>
+    <label for="apiBase">Địa chỉ server (graphrag serve)</label>
+    <input id="apiBase" placeholder="http://127.0.0.1:8000">
+    <label for="ownerKey">OWNER_API_KEY</label>
+    <input id="ownerKey" type="password" placeholder="dán key từ .env">
+    <button id="saveConfig" class="secondary">Lưu cấu hình</button>
+  </details>
+
+  <script src="popup.js"></script>
+</body>
+</html>

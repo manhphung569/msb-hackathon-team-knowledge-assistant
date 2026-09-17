@@ -1,0 +1,12 @@
+# Overlay riêng cho tenant demo/teamassistant (Settings.load(tenant_root=...) chỉ đọc đúng
+# 3 khoá sensitivity_rules/visibility_rules/default_project từ file này — xem config.py).
+#
+# visibility_rules: mặc định của engine là "owner" cho MỌI doc không khớp rule nào
+# (ingestion/loader.py _guess_visibility) — nghĩa là guest /query (mà workbench sẽ gọi qua
+# GUEST_API_KEY) sẽ không thấy gì nếu bỏ qua override này. Tenant demo không có nội dung nhạy
+# cảm gì (100% giả lập) nên mở "shared" cho toàn bộ path bằng 1 rule prefix rỗng.
+visibility_rules:
+  - prefix: ""
+    visibility: shared
+
+default_project: teamassistant

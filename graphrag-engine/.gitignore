@@ -1,0 +1,7 @@
+.env
+.venv/
+data/
+tests/.smoke_data/
+tests/.smoke_data_hackathon/
+__pycache__/
+*.pyc

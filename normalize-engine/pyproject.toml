@@ -1,0 +1,18 @@
+[project]
+name = "normalize-engine"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "pdfplumber",
+    "python-docx",
+    "python-pptx",
+    "openpyxl",
+    "extract-msg",
+    "typer",
+    "pymupdf",   # render PDF -> ảnh cho bước OCR
+    "openai",     # gọi OpenAI vision API OCR (lệnh `normalize ocr`)
+    "beautifulsoup4",  # parse .html artifact -> markdown
+]
+
+[project.scripts]
+normalize = "normalize.cli:app"

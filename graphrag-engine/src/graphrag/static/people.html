@@ -1,0 +1,541 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quản lý người dùng</title>
+<style>
+  :root {
+    color-scheme: light;
+    --surface-1: #fcfcfb;
+    --surface-2: #f2f1ee;
+    --page: #f9f9f7;
+    --text-primary: #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted: #898781;
+    --gridline: #e1e0d9;
+    --border: rgba(11, 11, 11, 0.10);
+    --series-1: #2a78d6;
+    --status-good: #0ca30c;
+    --status-serious: #d03b3b;
+    --danger-soft: #f9e8e2;
+    --radius-sm: 7px;
+    --radius-md: 11px;
+    --radius-lg: 16px;
+    --shadow-card: 0 1px 2px rgba(11,11,11,.05), 0 1px 1px rgba(11,11,11,.04);
+    --shadow-pop: 0 6px 20px rgba(11,11,11,.10), 0 2px 4px rgba(11,11,11,.06);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--page);
+    color: var(--text-primary);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  body.embed {
+    background: transparent;
+  }
+
+  .page-shell {
+    padding: 6px 0 0;
+  }
+
+  .config-box {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card);
+    padding: 10px 12px;
+    margin: 0 0 12px;
+  }
+
+  body.embed .config-box {
+    display: none;
+  }
+
+  .field-label,
+  .eyebrow {
+    display: block;
+    margin: 0 0 6px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .row,
+  .action-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  input[type="text"],
+  input[type="password"] {
+    width: 100%;
+    min-height: 32px;
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--page);
+    color: var(--text-primary);
+    font: inherit;
+    outline: none;
+    transition: border-color .15s ease, box-shadow .15s ease;
+  }
+
+  input[type="text"]:focus,
+  input[type="password"]:focus {
+    border-color: color-mix(in srgb, var(--series-1) 50%, var(--border));
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--series-1) 16%, transparent);
+  }
+
+  input[type="text"].input-error {
+    border-color: var(--status-serious);
+    box-shadow: 0 0 0 3px rgba(208, 59, 59, 0.12);
+  }
+
+  button {
+    min-height: 30px;
+    padding: 0 11px;
+    border: none;
+    border-radius: 999px;
+    background: var(--series-1);
+    color: #fff;
+    font: inherit;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity .12s ease, transform .12s ease;
+  }
+
+  button:hover {
+    opacity: .94;
+    transform: translateY(-1px);
+  }
+
+  button.secondary {
+    background: transparent;
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+  }
+
+  button.danger {
+    background: var(--danger-soft);
+    color: var(--status-serious);
+  }
+
+  #status {
+    min-height: 16px;
+    margin: 0 0 8px;
+    font-size: 11.5px;
+    color: var(--text-secondary);
+  }
+
+  #status.error { color: var(--status-serious); }
+  #status.ok { color: var(--status-good); }
+
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(340px, 0.98fr) minmax(420px, 1.42fr);
+    gap: 12px;
+    align-items: start;
+  }
+
+  .stack {
+    display: grid;
+    gap: 12px;
+  }
+
+  .section-card {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    padding: 12px;
+  }
+
+  body.embed .section-card {
+    background: var(--surface-1);
+  }
+
+  .section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+
+  .section-head h2,
+  .section-head h3 {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .section-note {
+    margin: 2px 0 0;
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+
+  body.embed .section-note {
+    display: none;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 22px;
+    padding: 0 8px;
+    border-radius: 999px;
+    background: var(--surface-2);
+    color: var(--text-secondary);
+    font-size: 10px;
+    font-weight: 700;
+  }
+
+  body.embed .chip {
+    display: none;
+  }
+
+  .table-wrap {
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface-1);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+
+  #registryTable {
+    table-layout: fixed;
+  }
+
+  #registryTable th:nth-child(1),
+  #registryTable td:nth-child(1) {
+    width: 34%;
+  }
+
+  #registryTable th:nth-child(2),
+  #registryTable td:nth-child(2) {
+    width: auto;
+    padding-right: 14px;
+  }
+
+  /* Cột nút Xoá dùng width cố định (px) thay vì % — ở màn hẹp, % có thể co lại chỉ còn vài chục px,
+     không đủ chỗ cho padding nên nút bị ép sát vào chữ alias (phản hồi người dùng 2026-08-26). */
+  #registryTable th:nth-child(3),
+  #registryTable td:nth-child(3) {
+    width: 76px;
+  }
+
+  #registryTable th:nth-child(3) {
+    text-align: right;
+    padding-right: 16px;
+  }
+
+  #registryTable td:nth-child(3) {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding-left: 14px;
+    padding-right: 16px;
+    border-left: 1px solid var(--gridline);
+  }
+
+  #registryTable td:nth-child(1),
+  #registryTable td:nth-child(2) {
+    overflow-wrap: anywhere;
+  }
+
+  thead th {
+    text-align: left;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    font-weight: 700;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--gridline);
+  }
+
+  tbody td {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--gridline);
+    vertical-align: top;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  .subtle-box {
+    background: color-mix(in srgb, var(--surface-2) 50%, transparent);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 10px;
+  }
+
+  .field-stack {
+    display: grid;
+    gap: 8px;
+  }
+
+  .columns-wrap {
+    position: relative;
+  }
+
+  #linksSvg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: visible;
+  }
+
+  #linksSvg line {
+    stroke: color-mix(in srgb, var(--series-1) 76%, #1baf7a);
+    stroke-width: 2;
+  }
+
+  #linksSvg line.temp {
+    stroke: var(--text-muted);
+    stroke-dasharray: 5 4;
+  }
+
+  .channel-columns {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 10px;
+  }
+
+  .channel-col {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface-1);
+    padding: 10px;
+  }
+
+  .channel-col h3 {
+    margin: 0 0 6px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+  }
+
+  .channel-col label {
+    display: block;
+    padding: 7px 8px;
+    margin-bottom: 6px;
+    border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--page) 82%, white);
+  }
+
+  .channel-col label:last-child {
+    margin-bottom: 0;
+  }
+
+  .channel-col label .hint {
+    display: block;
+    margin: 3px 0 0 20px;
+    color: var(--text-muted);
+    font-size: 10px;
+  }
+
+  .drag-handle {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-right: 5px;
+    border-radius: 50%;
+    background: var(--series-1);
+    cursor: crosshair;
+    vertical-align: middle;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--series-1) 12%, transparent);
+  }
+
+  .selection-bar {
+    margin-top: 8px;
+    padding: 8px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface-1);
+    box-shadow: var(--shadow-card);
+  }
+
+  .selection-bar input {
+    flex: 1 1 240px;
+  }
+
+  .group-card {
+    margin-top: 8px;
+    padding: 9px 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface-1);
+    box-shadow: var(--shadow-card);
+  }
+
+  .group-card:first-child {
+    margin-top: 0;
+  }
+
+  .group-card .names {
+    margin-bottom: 7px;
+    font-size: 12px;
+  }
+
+  .compact-block summary {
+    cursor: pointer;
+    list-style: none;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+  }
+
+  .compact-block summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .compact-block[open] summary {
+    color: var(--text-primary);
+  }
+
+  #ignoredList {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 6px;
+  }
+
+  #ignoredList li {
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface-1);
+  }
+
+  #ignoredList a {
+    color: var(--status-serious);
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .empty-card {
+    padding: 10px;
+    border: 1px dashed var(--gridline);
+    border-radius: var(--radius-md);
+    background: var(--surface-1);
+    color: var(--text-secondary);
+  }
+
+  @media (max-width: 920px) {
+    .layout {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="page-shell">
+    <div class="config-box">
+      <span class="field-label">OWNER_API_KEY</span>
+      <div class="row">
+        <input id="ownerKey" type="password" placeholder="Dán key từ .env">
+        <button id="saveKey" class="secondary">Lưu</button>
+      </div>
+    </div>
+
+    <div id="status"></div>
+
+    <div class="layout">
+      <div class="stack">
+        <section class="section-card">
+          <div class="section-head">
+            <div>
+              <h2>Registry hiện tại</h2>
+              <p class="section-note">Tên chính và alias đã xác nhận.</p>
+            </div>
+            <span class="chip">Registry</span>
+          </div>
+          <div class="table-wrap">
+            <table id="registryTable">
+              <thead>
+                <tr><th>Tên chính</th><th>Alias</th><th></th></tr>
+              </thead>
+              <tbody id="registryBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <details class="compact-block">
+          <summary>Thêm người mới</summary>
+          <div class="subtle-box">
+            <div class="field-stack">
+              <input id="newCanonical" type="text" placeholder="Tên chính">
+              <input id="newAliases" type="text" placeholder="Alias, phân tách bằng dấu phẩy">
+            </div>
+            <div class="action-row" style="margin-top:8px;">
+              <button id="addPerson">Lưu vào registry</button>
+            </div>
+          </div>
+        </details>
+
+        <details class="compact-block">
+          <summary>Danh sách đã ẩn</summary>
+          <ul id="ignoredList"></ul>
+        </details>
+      </div>
+
+      <div class="stack">
+        <section class="section-card">
+          <div class="section-head">
+            <div>
+              <h2>Chưa map theo kênh</h2>
+              <p class="section-note">Kéo để nối hoặc tick rồi gộp.</p>
+            </div>
+            <span class="chip">Mapping</span>
+          </div>
+
+          <div class="columns-wrap">
+            <svg id="linksSvg"></svg>
+            <div id="channelColumns" class="channel-columns"></div>
+          </div>
+
+          <div class="selection-bar action-row">
+            <input id="mergeCanonical" type="text" placeholder="Tên chính cho các mục đã chọn">
+            <button id="mergeSelected">Gộp</button>
+            <button id="ignoreSelected" class="danger">Không phải người</button>
+          </div>
+        </section>
+
+        <details class="compact-block" open>
+          <summary>Nhóm đã nối</summary>
+          <div id="linkGroups"></div>
+        </details>
+      </div>
+    </div>
+  </div>
+
+  <script src="people.js?v=20260807b"></script>
+</body>
+</html>

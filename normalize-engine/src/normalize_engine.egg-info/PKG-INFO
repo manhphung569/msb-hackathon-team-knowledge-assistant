@@ -1,0 +1,13 @@
+Metadata-Version: 2.4
+Name: normalize-engine
+Version: 0.1.0
+Requires-Python: >=3.11
+Requires-Dist: pdfplumber
+Requires-Dist: python-docx
+Requires-Dist: python-pptx
+Requires-Dist: openpyxl
+Requires-Dist: extract-msg
+Requires-Dist: typer
+Requires-Dist: pymupdf
+Requires-Dist: openai
+Requires-Dist: beautifulsoup4

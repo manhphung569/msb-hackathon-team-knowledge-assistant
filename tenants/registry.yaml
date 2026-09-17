@@ -1,0 +1,9 @@
+schema_version: 1
+
+tenants:
+  - org_id: demo
+    workspace_id: teamassistant
+    path: tenants/demo/teamassistant
+    note: >
+      MSB AI Hackathon 2026 submission demo ("Team Knowledge Assistant") — 100% nội dung giả
+      lập, KHÔNG chứa dữ liệu thật MSB/TNTalent/TNEX. Xem tenants/demo/README.md.

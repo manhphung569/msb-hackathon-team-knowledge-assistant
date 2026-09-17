@@ -1,0 +1,14 @@
+# Dependencies for the migrated Vault subsystem (workbench/). Own venv — do not
+# share with graphrag-engine/.venv (zero dependency overlap, see migration ADR).
+anthropic
+requests
+cryptography
+pyyaml
+openpyxl
+pypdf
+python-docx
+python-pptx
+olefile
+xlrd
+py7zr
+rarfile

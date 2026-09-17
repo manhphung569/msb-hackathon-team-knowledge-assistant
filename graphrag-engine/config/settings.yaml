@@ -1,0 +1,44 @@
+paths:
+  normalized_dir: ../normalized
+  vector_index_dir: ./data/vector_index
+  graph_db_dir: ./data/graph_db
+  cache_dir: ./data/cache
+
+vector_store:
+  backend: lancedb          # lancedb | qdrant
+  qdrant_url: http://localhost:6333   # dùng khi backend: qdrant
+
+graph_store:
+  backend: kuzu              # kuzu | neo4j
+  neo4j_uri: bolt://localhost:7687    # dùng khi backend: neo4j
+
+embedding:
+  default_provider: voyage      # voyage | local | greennode (greennode: MSB AI Hackathon 2026
+                                 # co-organizer platform, cần GREENNODE_API_KEY + GREENNODE_BASE_URL
+                                 # trong .env — xem embedding/embedder.py's GreenNodeEmbedder, viết
+                                 # speculative vì chưa có docs chính thức lúc thêm dòng này)
+  # chạy qua fastembed (ONNX, offline) khi thiếu API key hoặc sensitivity == confidential.
+  # "BAAI/bge-m3" KHÔNG được fastembed hỗ trợ (kiểm tra qua TextEmbedding.list_supported_models()) — dùng model
+  # đa ngôn ngữ dưới đây thay thế. Override nhanh qua env GRAPHRAG_LOCAL_EMBED_MODEL (index thật hiện đang
+  # dùng BAAI/bge-small-en-v1.5 qua override này — xem data/cache/index_meta.json).
+  local_model: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
+
+# sensitivity_rules / visibility_rules: kể từ khi tách tenants/ (2026-08-22), 2 khoá này KHÔNG
+# còn đặt ở đây nữa — mỗi tenant có index vật lý riêng, chỉ tenant nào thực sự cần rule mới có
+# overlay tại <tenant_root>/config/settings.yaml (chỉ 2 khoá này được đọc từ đó, xem
+# Settings.load(tenant_root=...) trong config.py). Config file này chỉ còn giữ phần dùng chung
+# (embedding/llm/retrieval/chunking) cho mọi tenant. Xem tenants/msb/{ekyc,dip,magnet,msbpay}/config/
+# cho các overlay hiện có (chuyển nguyên trạng từ rule cũ, chỉ đổi prefix cho khớp path đã flatten).
+sensitivity_rules: []
+visibility_rules: []
+
+llm:
+  extraction_provider: openai     # openai | claude | greennode — dùng cho entity/relation extraction (graph layer)
+  extraction_model: gpt-4o-mini        # đổi model theo extraction_provider ở trên
+  answer_provider: openai        # openai | claude | greennode — dùng cho sinh câu trả lời cuối (graphrag query)
+  answer_model: gpt-4o-mini           # đổi model theo answer_provider ở trên
+
+retrieval:
+  vector_top_k: 20
+  graph_hops: 2
+  rerank_top_n: 8

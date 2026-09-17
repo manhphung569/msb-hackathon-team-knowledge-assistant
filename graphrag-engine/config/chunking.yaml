@@ -1,0 +1,13 @@
+# Kích thước chunk mặc định theo loại tài liệu (token, xấp xỉ).
+# Ưu tiên cắt theo heading markdown trước; giá trị dưới đây chỉ áp dụng khi
+# một section vẫn quá dài sau khi cắt theo heading.
+
+default:
+  chunk_size: 512
+  chunk_overlap: 64
+
+by_doc_type:
+  report:          { chunk_size: 512, chunk_overlap: 64 }   # BaoCao_*, Report_*
+  backlog:         { chunk_size: 256, chunk_overlap: 32 }   # bảng nhiều dòng ngắn, cần chunk nhỏ hơn
+  mom:             { chunk_size: 384, chunk_overlap: 48 }   # biên bản họp
+  solution_doc:    { chunk_size: 640, chunk_overlap: 96 }   # tài liệu giải pháp dài, nhiều mạch lý luận

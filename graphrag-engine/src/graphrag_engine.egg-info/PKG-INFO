@@ -1,0 +1,26 @@
+Metadata-Version: 2.4
+Name: graphrag-engine
+Version: 0.1.0
+Requires-Python: >=3.11
+Requires-Dist: anthropic
+Requires-Dist: openai
+Requires-Dist: voyageai
+Requires-Dist: fastembed
+Requires-Dist: lancedb
+Requires-Dist: pyarrow
+Requires-Dist: pyyaml
+Requires-Dist: typer
+Requires-Dist: watchdog
+Provides-Extra: graph
+Requires-Dist: kuzu; extra == "graph"
+Provides-Extra: api
+Requires-Dist: fastapi; extra == "api"
+Requires-Dist: uvicorn; extra == "api"
+Provides-Extra: scale
+Requires-Dist: qdrant-client; extra == "scale"
+Requires-Dist: neo4j; extra == "scale"
+Provides-Extra: local-llm
+Requires-Dist: ollama; extra == "local-llm"
+Provides-Extra: local-ocr
+Requires-Dist: pytesseract; extra == "local-ocr"
+Requires-Dist: Pillow; extra == "local-ocr"

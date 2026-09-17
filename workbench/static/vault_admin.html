@@ -1,0 +1,797 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vault Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --brand:#FF7A3D;--brand2:#EF6C2C;--brand-bg:rgba(255,122,61,.08);--brand-border:rgba(255,122,61,.25);
+  --panel:#FFFFFF;--panel-2:#F8FAFC;--sb-bg:#F8FAFC;--sb-border:#E2E8F0;--hdr-bg:rgba(255,255,255,.96);--hdr-border:#E2E8F0;
+  --c-text:#0F172A;--c-muted:#64748B;--c-dim:#94A3B8;
+  --teal:#0D9488;--teal-bg:rgba(13,148,136,.08);--teal-bdr:rgba(13,148,136,.22);
+  --green:#16A34A;--red:#DC2626;--yellow:#D97706;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;font:13px/1.5 'Inter',-apple-system,sans-serif;color:var(--c-text);background:#F1F5F9;overflow-x:hidden;}
+a{text-decoration:none;color:inherit;}
+button{font-family:'Inter',sans-serif;cursor:pointer;}
+
+/* ── HEADER ── */
+.hdr{
+  background:var(--hdr-bg);border-bottom:1px solid var(--hdr-border);
+  display:flex;align-items:center;gap:10px;padding:0 20px;height:54px;
+  backdrop-filter:blur(16px);box-shadow:0 1px 3px rgba(0,0,0,.06);
+}
+.hdr-brand{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:700;color:var(--c-text);}
+.brand-glyph{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:#FFFFFF;box-shadow:0 8px 20px rgba(15,23,42,.10), inset 0 1px 0 rgba(255,255,255,.9);border:1px solid #E2E8F0;}
+.brain-emoji{font-size:20px;line-height:1;display:block;}
+.hdr-badge{background:var(--teal-bg);border:1px solid var(--teal-bdr);color:var(--teal);
+  font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;margin-left:4px;}
+.hdr-back{margin-left:auto;display:flex;align-items:center;gap:5px;
+  padding:5px 12px;border-radius:6px;border:1px solid #30363D;color:var(--c-muted);font-size:11px;font-weight:600;}
+.hdr-back{border-color:var(--sb-border);background:rgba(255,255,255,.72);}
+.hdr-back:hover{border-color:var(--brand);color:var(--brand);}
+
+/* ── LAYOUT ── */
+.body{display:flex;min-height:calc(100vh - 54px);}
+.sidebar{width:180px;flex-shrink:0;background:var(--sb-bg);border-right:1px solid var(--sb-border);padding:12px 0;box-shadow:inset -1px 0 0 rgba(255,255,255,.45);}
+.sb-item{
+  display:flex;align-items:center;gap:8px;padding:8px 16px;
+  font-size:12px;font-weight:500;color:var(--c-muted);cursor:pointer;
+  border-left:2px solid transparent;transition:all .12s;
+}
+.sb-item:hover{background:var(--panel-2);color:var(--c-text);}
+.sb-item.active{background:rgba(15,118,110,.12);color:var(--teal);border-left-color:var(--teal);}
+.sb-item .ico{font-size:14px;width:18px;text-align:center;}
+.sb-badge{margin-left:auto;background:#F85149;color:#fff;font-size:9px;font-weight:700;
+  padding:1px 5px;border-radius:8px;min-width:16px;text-align:center;}
+
+.content{flex:1;overflow-y:auto;padding:24px;}
+.tab-pane{display:none;}
+.tab-pane.active{display:block;}
+
+/* ── CARDS ── */
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:24px;}
+.stat-card{background:var(--panel);border:1px solid var(--sb-border);border-radius:14px;padding:14px 16px;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.stat-n{font-size:24px;font-weight:700;color:var(--c-text);margin-bottom:2px;}
+.stat-l{font-size:10px;color:var(--c-muted);text-transform:uppercase;letter-spacing:.5px;}
+
+/* ── SECTION HEADER ── */
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.sec-title{font-size:13px;font-weight:700;color:var(--c-text);}
+.sec-note{font-size:11px;color:var(--c-muted);margin-top:2px;}
+
+/* ── BUTTONS ── */
+.btn{
+  display:inline-flex;align-items:center;gap:5px;padding:6px 12px;
+  border-radius:6px;font:11px/1 'Inter',sans-serif;font-weight:600;border:1px solid;
+  transition:all .15s;white-space:nowrap;
+}
+.btn-primary{background:var(--brand-bg);border-color:var(--brand-border);color:var(--brand);}
+.btn-primary:hover{background:var(--brand);color:#fff;border-color:var(--brand);}
+.btn-teal{background:var(--teal-bg);border-color:var(--teal-bdr);color:var(--teal);}
+.btn-teal:hover{background:var(--teal);color:#fff;}
+.btn-ghost{background:#FFFFFF;border-color:var(--sb-border);color:var(--c-muted);}
+.btn-ghost:hover{border-color:var(--brand);color:var(--brand);}
+.btn-danger{background:rgba(248,81,73,.1);border-color:rgba(248,81,73,.3);color:var(--red);}
+.btn-danger:hover{background:var(--red);color:#fff;}
+.btn-sm{padding:3px 8px;font-size:10px;}
+.btn:disabled{opacity:.45;pointer-events:none;}
+
+/* ── TABLE ── */
+.tbl-wrap{background:var(--panel);border:1px solid var(--sb-border);border-radius:14px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05);}
+table{width:100%;border-collapse:collapse;}
+th{background:var(--panel-2);padding:8px 12px;text-align:left;font-size:10px;font-weight:700;
+  color:var(--c-muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--sb-border);}
+td{padding:9px 12px;font-size:12px;border-bottom:1px solid #E2E8F0;vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:#F8FAFC;}
+
+/* ── PILLS ── */
+.role-pill{display:inline-block;padding:1px 5px;border-radius:4px;font-size:9px;font-weight:700;
+  background:#F1F5F9;color:#64748B;margin:1px;border:1px solid #E2E8F0;}
+.quota-bar{height:4px;background:#E2E8F0;border-radius:2px;overflow:hidden;min-width:60px;}
+.quota-fill{height:100%;border-radius:2px;transition:width .3s;}
+.badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:9px;font-size:10px;font-weight:700;}
+.badge-green{background:rgba(22,163,74,.15);color:#4ADE80;}
+.badge-red{background:rgba(248,81,73,.15);color:#F87171;}
+.badge-yellow{background:rgba(210,153,34,.15);color:#FCD34D;}
+.badge-blue{background:rgba(29,78,216,.15);color:#60A5FA;}
+
+/* ── FORM ── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.form-group{display:flex;flex-direction:column;gap:4px;}
+.form-label{font-size:11px;font-weight:600;color:var(--c-muted);}
+.form-input{
+  background:#FFFDF8;border:1px solid #E3D4C1;color:var(--c-text);
+  padding:7px 10px;border-radius:6px;font:12px/1 'Inter',sans-serif;outline:none;
+}
+.form-input:focus{border-color:var(--teal);}
+.role-checkboxes{display:flex;flex-wrap:wrap;gap:6px;}
+.role-cb{display:flex;align-items:center;gap:4px;cursor:pointer;}
+.role-cb input{cursor:pointer;accent-color:var(--teal);}
+.form-span{grid-column:1/-1;}
+
+/* ── MODAL ── */
+.modal{position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;}
+.modal.open{display:flex;}
+.modal-box{background:var(--panel);border:1px solid #E3D4C1;border-radius:18px;padding:24px;width:480px;max-width:96vw;max-height:90vh;overflow-y:auto;box-shadow:0 24px 60px rgba(121,77,27,.14);}
+.modal-title{font-size:14px;font-weight:700;color:var(--c-text);margin-bottom:16px;}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;}
+.modal-err{font-size:11px;color:var(--red);margin-top:8px;min-height:16px;}
+
+/* ── CHART ── */
+.chart-wrap{background:var(--panel);border:1px solid var(--sb-border);border-radius:14px;padding:16px;margin-bottom:20px;box-shadow:0 10px 22px rgba(121,77,27,.05);}
+.chart-title{font-size:11px;font-weight:700;color:var(--c-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;}
+.bar-chart{display:flex;align-items:flex-end;gap:3px;height:80px;}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.bar-fill{width:100%;background:var(--teal);border-radius:3px 3px 0 0;min-height:2px;transition:height .3s;}
+.bar-label{font-size:8px;color:var(--c-dim);white-space:nowrap;}
+
+/* ── COLLAPSIBLE FORM ── */
+.add-form{background:var(--panel);border:1px solid var(--sb-border);border-radius:14px;margin-bottom:16px;overflow:hidden;box-shadow:0 10px 22px rgba(121,77,27,.05);}
+.add-form-hdr{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;cursor:pointer;}
+.add-form-hdr:hover{background:#FFF6EC;}
+.add-form-body{padding:0 16px 16px;display:none;}
+.add-form-body.open{display:block;}
+
+/* ── SETUP ── */
+.wizard-step{background:var(--panel);border:1px solid var(--sb-border);border-radius:14px;padding:20px;margin-bottom:16px;box-shadow:0 10px 22px rgba(121,77,27,.05);}
+.wizard-step-num{display:inline-flex;align-items:center;justify-content:center;
+  width:24px;height:24px;background:var(--teal);border-radius:50%;font-size:11px;font-weight:700;color:#fff;margin-right:8px;}
+.wizard-step-title{font-size:13px;font-weight:700;color:var(--c-text);display:flex;align-items:center;margin-bottom:14px;}
+
+@media (max-width: 900px){
+  .hdr{height:auto;padding:12px 16px;flex-wrap:wrap;}
+  .hdr-back{margin-left:0;}
+  .body{flex-direction:column;min-height:auto;}
+  .sidebar{width:100%;display:flex;gap:6px;overflow-x:auto;padding:10px 12px;}
+  .sb-item{border-left:none;border-bottom:2px solid transparent;border-radius:10px;white-space:nowrap;padding:10px 12px;background:rgba(255,255,255,.65);}
+  .sb-item.active{border-left-color:transparent;border-bottom-color:var(--teal);}
+  .content{padding:16px;}
+  .sec-hdr{align-items:flex-start;flex-direction:column;gap:10px;}
+  .form-grid{grid-template-columns:1fr;}
+  .tbl-wrap{overflow:auto;}
+}
+
+@media (max-width: 560px){
+  .content{padding:12px;}
+  .stat-row{grid-template-columns:1fr;}
+  .btn{justify-content:center;white-space:normal;}
+  .modal-box{padding:18px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header class="hdr">
+  <div class="hdr-brand">
+    <div class="brand-glyph" aria-hidden="true"><span class="brain-emoji">🧠</span></div>
+    <span>Vault Admin</span>
+    <span class="hdr-badge">ADMIN</span>
+  </div>
+  <a class="hdr-back" href="/vault/">← Vault</a>
+</header>
+
+<div class="body">
+  <!-- ── SIDEBAR ── -->
+  <nav class="sidebar">
+    <div class="sb-item active" onclick="switchTab('users')" id="nav-users">
+      <span class="ico">👥</span> Users
+    </div>
+    <div class="sb-item" onclick="switchTab('tokens')" id="nav-tokens">
+      <span class="ico">🪙</span> Token Requests
+      <span class="sb-badge" id="pending-badge" style="display:none">0</span>
+    </div>
+    <div class="sb-item" onclick="switchTab('stats')" id="nav-stats">
+      <span class="ico">📊</span> Usage Stats
+    </div>
+    <div class="sb-item" onclick="switchTab('setup')" id="nav-setup">
+      <span class="ico">🔧</span> Setup
+    </div>
+  </nav>
+
+  <!-- ── CONTENT ── -->
+  <main class="content">
+
+    <!-- ══ USERS TAB ══ -->
+    <div class="tab-pane active" id="tab-users">
+      <div class="sec-hdr">
+        <div>
+          <div class="sec-title">Quản lý Users</div>
+          <div class="sec-note">Thêm, chỉnh sửa, khoá tài khoản người dùng</div>
+        </div>
+        <button class="btn btn-teal" onclick="toggleAddForm()">＋ Thêm user</button>
+      </div>
+
+      <!-- Add user form -->
+      <div class="add-form" id="add-form-wrap" style="display:none">
+        <div class="add-form-hdr" onclick="toggleAddForm()">
+          <span style="font-size:12px;font-weight:600">Thêm tài khoản mới</span>
+          <span style="color:var(--c-muted)">▾</span>
+        </div>
+        <div class="add-form-body open">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Username *</label>
+              <input class="form-input" id="new-user" placeholder="abc123" autocomplete="off">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Tên hiển thị</label>
+              <input class="form-input" id="new-name" placeholder="Nguyễn Văn A">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Password *</label>
+              <input class="form-input" id="new-pw" type="password" placeholder="≥6 ký tự">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Token Quota</label>
+              <input class="form-input" id="new-quota" type="number" value="50000" min="1000">
+            </div>
+            <div class="form-group form-span">
+              <label class="form-label">Roles</label>
+              <div class="role-checkboxes" id="new-roles"></div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" style="display:flex;align-items:center;gap:6px;cursor:pointer">
+                <input type="checkbox" id="new-is-admin" style="accent-color:var(--red)"> Admin
+              </label>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:14px">
+            <button class="btn btn-teal" onclick="createUser()">Tạo tài khoản</button>
+            <button class="btn btn-ghost" onclick="toggleAddForm()">Huỷ</button>
+          </div>
+          <div class="modal-err" id="add-err"></div>
+        </div>
+      </div>
+
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Roles</th>
+              <th>Token usage</th>
+              <th>Status</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="users-tbody">
+            <tr><td colspan="6" style="text-align:center;color:var(--c-muted);padding:24px">Đang tải...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ TOKEN REQUESTS TAB ══ -->
+    <div class="tab-pane" id="tab-tokens">
+      <div class="sec-hdr">
+        <div>
+          <div class="sec-title">Token Requests</div>
+          <div class="sec-note">Duyệt yêu cầu cấp thêm token</div>
+        </div>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Hiện tại</th>
+              <th>Yêu cầu</th>
+              <th>Lý do</th>
+              <th>Ngày</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="reqs-tbody">
+            <tr><td colspan="7" style="text-align:center;color:var(--c-muted);padding:24px">Đang tải...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ USAGE STATS TAB ══ -->
+    <div class="tab-pane" id="tab-stats">
+      <div class="sec-hdr">
+        <div>
+          <div class="sec-title">Usage Statistics</div>
+          <div class="sec-note">Token consumption & conversation metrics</div>
+        </div>
+        <a class="btn btn-ghost" href="/vault/admin/usage.csv" download>⬇ Export CSV</a>
+      </div>
+
+      <div class="stat-row" id="stat-cards">
+        <div class="stat-card"><div class="stat-n">—</div><div class="stat-l">Active Users</div></div>
+        <div class="stat-card"><div class="stat-n">—</div><div class="stat-l">Total Tokens Used</div></div>
+        <div class="stat-card"><div class="stat-n">—</div><div class="stat-l">Conversations</div></div>
+        <div class="stat-card"><div class="stat-n">—</div><div class="stat-l">Messages</div></div>
+      </div>
+
+      <div class="chart-wrap">
+        <div class="chart-title">Token usage — 14 ngày gần nhất</div>
+        <div class="bar-chart" id="daily-chart">
+          <div style="color:var(--c-muted);font-size:11px;align-self:center">Đang tải...</div>
+        </div>
+      </div>
+
+      <div class="sec-hdr" style="margin-top:4px">
+        <div class="sec-title">Top users theo token</div>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr><th>User</th><th>Tokens Used</th><th>Quota</th><th>Usage %</th></tr>
+          </thead>
+          <tbody id="top-users-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ SETUP TAB ══ -->
+    <div class="tab-pane" id="tab-setup">
+      <div class="sec-hdr">
+        <div>
+          <div class="sec-title">Setup & Configuration</div>
+          <div class="sec-note">Cài đặt hệ thống và thêm người dùng hàng loạt</div>
+        </div>
+      </div>
+
+      <!-- Batch create users -->
+      <div class="wizard-step">
+        <div class="wizard-step-title">
+          <span class="wizard-step-num">1</span>
+          Thêm người dùng nhanh (bulk)
+        </div>
+        <p style="font-size:11px;color:var(--c-muted);margin-bottom:14px">
+          Mỗi dòng: <code style="background:#FFF4E7;border:1px solid #EEDFCC;color:#6E5A48;padding:1px 5px;border-radius:3px">username password roles quota</code>
+          — roles phân cách bởi dấu phẩy, quota để trống = 50000
+        </p>
+        <textarea class="form-input" id="bulk-users" rows="5" style="width:100%;resize:vertical;font-family:'JetBrains Mono',monospace;font-size:11px"
+          placeholder="ba_user1 pass123 BA,SA 50000&#10;po_user2 pass456 PO,BA&#10;dev_user3 pass789 DEV,TL 100000"></textarea>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn btn-teal" onclick="bulkCreateUsers()">Tạo hàng loạt</button>
+        </div>
+        <div id="bulk-result" style="margin-top:10px;font-size:11px;line-height:1.8"></div>
+      </div>
+
+      <!-- Default quota -->
+      <div class="wizard-step">
+        <div class="wizard-step-title">
+          <span class="wizard-step-num">2</span>
+          Token Quota mặc định
+        </div>
+        <p style="font-size:11px;color:var(--c-muted);margin-bottom:14px">
+          Áp dụng cho tất cả user mới tạo (không ảnh hưởng user hiện tại).
+          Lưu vào <code style="background:#FFF4E7;border:1px solid #EEDFCC;color:#6E5A48;padding:1px 5px;border-radius:3px">localStorage</code> trình duyệt admin.
+        </p>
+        <div style="display:flex;align-items:center;gap:10px">
+          <input class="form-input" id="default-quota" type="number" value="50000" min="1000" style="width:140px">
+          <button class="btn btn-teal" onclick="saveDefaultQuota()">Lưu</button>
+          <span id="quota-save-msg" style="font-size:11px;color:var(--green)"></span>
+        </div>
+      </div>
+
+      <!-- DB info -->
+      <div class="wizard-step">
+        <div class="wizard-step-title">
+          <span class="wizard-step-num">3</span>
+          Database Info
+        </div>
+        <div id="db-info" style="font-size:12px;color:var(--c-muted);line-height:2">Đang tải...</div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ══ EDIT USER MODAL ══ -->
+<div class="modal" id="edit-modal">
+  <div class="modal-box">
+    <div class="modal-title">✏️ Chỉnh sửa user</div>
+    <input type="hidden" id="edit-uid">
+    <div class="form-grid">
+      <div class="form-group">
+        <label class="form-label">Username</label>
+        <input class="form-input" id="edit-username" disabled style="opacity:.5">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tên hiển thị</label>
+        <input class="form-input" id="edit-display">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Token Quota</label>
+        <input class="form-input" id="edit-quota" type="number" min="1000">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Reset Password (để trống = giữ nguyên)</label>
+        <input class="form-input" id="edit-pw" type="password" placeholder="New password ≥6 ký tự">
+      </div>
+      <div class="form-group form-span">
+        <label class="form-label">Roles</label>
+        <div class="role-checkboxes" id="edit-roles"></div>
+      </div>
+    </div>
+    <div class="modal-err" id="edit-err"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('edit-modal')">Huỷ</button>
+      <button class="btn btn-teal" onclick="saveUser()">Lưu thay đổi</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ APPROVE TOKEN REQUEST MODAL ══ -->
+<div class="modal" id="approve-modal">
+  <div class="modal-box" style="width:360px">
+    <div class="modal-title">✅ Duyệt yêu cầu token</div>
+    <input type="hidden" id="approve-rid">
+    <div class="form-group" style="margin-bottom:12px">
+      <label class="form-label">Số token cấp thực tế</label>
+      <input class="form-input" id="approve-amount" type="number" min="1000">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Ghi chú (tuỳ chọn)</label>
+      <input class="form-input" id="approve-note" placeholder="Ghi chú cho user">
+    </div>
+    <div class="modal-err" id="approve-err"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('approve-modal')">Huỷ</button>
+      <button class="btn btn-teal" onclick="submitApprove()">Duyệt</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DENY TOKEN REQUEST MODAL ══ -->
+<div class="modal" id="deny-modal">
+  <div class="modal-box" style="width:360px">
+    <div class="modal-title">❌ Từ chối yêu cầu</div>
+    <input type="hidden" id="deny-rid">
+    <div class="form-group">
+      <label class="form-label">Lý do từ chối</label>
+      <input class="form-input" id="deny-note" placeholder="Lý do...">
+    </div>
+    <div class="modal-err" id="deny-err"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('deny-modal')">Huỷ</button>
+      <button class="btn btn-danger" onclick="submitDeny()">Từ chối</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const ROLES_ALL = ['PO','BA','SA','EA','TL','DEV','TEST'];
+let _session = localStorage.getItem('vault_session') || '';
+let _users = [];
+
+function authH(){ return _session ? {'X-Session':_session,'Content-Type':'application/json'} : {'Content-Type':'application/json'}; }
+
+async function api(url, opts={}){
+  const r = await fetch(url, {headers: authH(), ...opts});
+  if(r.status===401){ location.href='/vault/'; return null; }
+  if(r.status===403){ location.href='/vault/'; return null; }
+  return r.json();
+}
+
+function fmtN(n){ if(n===undefined||n===null)return '—'; if(n>=1000000)return (n/1000000).toFixed(1)+'M'; if(n>=1000)return (n/1000).toFixed(1)+'k'; return String(n); }
+function fmtDate(s){ if(!s)return '—'; return s.slice(0,10); }
+
+/* ── TABS ── */
+function switchTab(name){
+  document.querySelectorAll('.tab-pane').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.sb-item').forEach(el=>el.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  document.getElementById('nav-'+name).classList.add('active');
+  if(name==='users') loadUsers();
+  if(name==='tokens') loadRequests();
+  if(name==='stats') loadStats();
+  if(name==='setup') loadSetup();
+}
+
+/* ── USERS ── */
+function buildRoleCbs(containerId, selected=[]){
+  document.getElementById(containerId).innerHTML = ROLES_ALL.map(r=>`
+    <label class="role-cb">
+      <input type="checkbox" value="${r}" ${selected.includes(r)?'checked':''}>
+      <span style="font-size:11px">${r}</span>
+    </label>
+  `).join('');
+}
+function getCheckedRoles(containerId){
+  return [...document.querySelectorAll(`#${containerId} input[type=checkbox]:checked`)].map(x=>x.value);
+}
+
+async function loadUsers(){
+  const d = await api('/vault/admin/users');
+  if(!d) return;
+  _users = d.users || [];
+  const tbody = document.getElementById('users-tbody');
+  if(!_users.length){ tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--c-muted);padding:24px">Không có user</td></tr>'; return; }
+  tbody.innerHTML = _users.map(u=>{
+    const roles = JSON.parse(u.roles_json||'[]');
+    const pct = Math.min(100, Math.round(u.token_used/Math.max(u.token_quota,1)*100));
+    const barColor = pct>=95?'var(--red)':pct>=80?'var(--yellow)':'var(--green)';
+    return `<tr>
+      <td>
+        <div style="font-weight:600;color:#F0F6FC">${u.display_name||u.username}</div>
+        <div style="font-size:10px;color:var(--c-muted)">@${u.username}${u.is_admin?' · <span style="color:var(--red)">admin</span>':''}</div>
+      </td>
+      <td>${roles.map(r=>`<span class="role-pill">${r}</span>`).join('')}</td>
+      <td>
+        <div style="font-size:11px;margin-bottom:3px">${fmtN(u.token_used)} / ${fmtN(u.token_quota)} <span style="color:var(--c-dim)">(${pct}%)</span></div>
+        <div class="quota-bar"><div class="quota-fill" style="width:${pct}%;background:${barColor}"></div></div>
+      </td>
+      <td><span class="badge ${u.active?'badge-green':'badge-red'}">${u.active?'Active':'Inactive'}</span></td>
+      <td style="color:var(--c-muted)">${fmtDate(u.created_at)}</td>
+      <td>
+        <div style="display:flex;gap:5px">
+          <button class="btn btn-ghost btn-sm" onclick="openEditUser(${u.id})">✏️ Edit</button>
+          <button class="btn btn-sm ${u.active?'btn-danger':'btn-teal'}" onclick="toggleActive(${u.id},${u.active?0:1})">
+            ${u.active?'🔒 Lock':'🔓 Unlock'}
+          </button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function toggleAddForm(){
+  const w = document.getElementById('add-form-wrap');
+  const visible = w.style.display !== 'none';
+  w.style.display = visible ? 'none' : 'block';
+  if(!visible){
+    buildRoleCbs('new-roles', ['BA']);
+    document.getElementById('new-user').focus();
+    document.getElementById('add-err').textContent='';
+  }
+}
+
+async function createUser(){
+  const username = document.getElementById('new-user').value.trim();
+  const display  = document.getElementById('new-name').value.trim();
+  const pw       = document.getElementById('new-pw').value;
+  const quota    = parseInt(document.getElementById('new-quota').value)||50000;
+  const roles    = getCheckedRoles('new-roles');
+  const is_admin = document.getElementById('new-is-admin').checked;
+  const errEl    = document.getElementById('add-err');
+  if(!username||!pw){ errEl.textContent='Username và password bắt buộc'; return; }
+  const d = await api('/vault/admin/users', {
+    method:'POST',
+    body: JSON.stringify({username, display_name:display||username, password:pw, roles:roles.length?roles:['BA'], token_quota:quota, is_admin})
+  });
+  if(!d) return;
+  if(d.error){ errEl.textContent=d.error; return; }
+  errEl.textContent='';
+  document.getElementById('new-user').value='';
+  document.getElementById('new-name').value='';
+  document.getElementById('new-pw').value='';
+  toggleAddForm();
+  loadUsers();
+}
+
+function openEditUser(uid){
+  const u = _users.find(x=>x.id===uid);
+  if(!u) return;
+  document.getElementById('edit-uid').value = uid;
+  document.getElementById('edit-username').value = u.username;
+  document.getElementById('edit-display').value = u.display_name||u.username;
+  document.getElementById('edit-quota').value = u.token_quota;
+  document.getElementById('edit-pw').value = '';
+  document.getElementById('edit-err').textContent = '';
+  buildRoleCbs('edit-roles', JSON.parse(u.roles_json||'[]'));
+  document.getElementById('edit-modal').classList.add('open');
+}
+
+async function saveUser(){
+  const uid     = parseInt(document.getElementById('edit-uid').value);
+  const display = document.getElementById('edit-display').value.trim();
+  const quota   = parseInt(document.getElementById('edit-quota').value)||50000;
+  const pw      = document.getElementById('edit-pw').value;
+  const roles   = getCheckedRoles('edit-roles');
+  const errEl   = document.getElementById('edit-err');
+  const body = {display_name:display, token_quota:quota, roles:roles.length?roles:['BA']};
+  if(pw){ if(pw.length<6){errEl.textContent='Password ≥6 ký tự';return;} body.new_password=pw; }
+  const d = await api('/vault/admin/users/'+uid, {method:'PUT', body:JSON.stringify(body)});
+  if(!d) return;
+  if(d.error){ errEl.textContent=d.error; return; }
+  closeModal('edit-modal');
+  loadUsers();
+}
+
+async function toggleActive(uid, active){
+  await api('/vault/admin/users/'+uid, {method:'PUT', body:JSON.stringify({active})});
+  loadUsers();
+}
+
+/* ── TOKEN REQUESTS ── */
+async function loadRequests(){
+  const d = await api('/vault/admin/token-requests');
+  if(!d) return;
+  const reqs = d.requests || [];
+  const pending = reqs.filter(r=>r.status==='pending').length;
+  const badge = document.getElementById('pending-badge');
+  badge.textContent = pending;
+  badge.style.display = pending ? '' : 'none';
+
+  const tbody = document.getElementById('reqs-tbody');
+  if(!reqs.length){ tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--c-muted);padding:24px">Không có yêu cầu nào</td></tr>'; return; }
+  tbody.innerHTML = reqs.map(r=>{
+    const statusBadge = r.status==='pending'
+      ? '<span class="badge badge-yellow">⏳ Pending</span>'
+      : r.status==='approved'
+        ? '<span class="badge badge-green">✅ Approved</span>'
+        : '<span class="badge badge-red">❌ Denied</span>';
+    const actions = r.status==='pending' ? `
+      <button class="btn btn-teal btn-sm" onclick="openApprove(${r.id},${r.amount_requested})">✅ Duyệt</button>
+      <button class="btn btn-danger btn-sm" onclick="openDeny(${r.id})">❌ Từ chối</button>
+    ` : `<span style="font-size:10px;color:var(--c-muted)">${r.admin_note||''}</span>`;
+    return `<tr>
+      <td><strong>${r.username}</strong><br><span style="font-size:10px;color:var(--c-muted)">${fmtN(r.token_used)}/${fmtN(r.token_quota)}</span></td>
+      <td>${fmtN(r.token_quota)}</td>
+      <td style="color:#60A5FA;font-weight:600">+${fmtN(r.amount_requested)}</td>
+      <td style="max-width:180px;font-size:11px;color:var(--c-muted)">${r.reason||'—'}</td>
+      <td style="color:var(--c-muted)">${fmtDate(r.created_at)}</td>
+      <td>${statusBadge}</td>
+      <td><div style="display:flex;gap:5px;flex-wrap:wrap">${actions}</div></td>
+    </tr>`;
+  }).join('');
+}
+
+function openApprove(rid, amount){
+  document.getElementById('approve-rid').value = rid;
+  document.getElementById('approve-amount').value = amount;
+  document.getElementById('approve-note').value = '';
+  document.getElementById('approve-err').textContent = '';
+  document.getElementById('approve-modal').classList.add('open');
+}
+async function submitApprove(){
+  const rid    = parseInt(document.getElementById('approve-rid').value);
+  const amount = parseInt(document.getElementById('approve-amount').value)||0;
+  const note   = document.getElementById('approve-note').value.trim();
+  const errEl  = document.getElementById('approve-err');
+  if(amount<=0){ errEl.textContent='Nhập số token > 0'; return; }
+  const d = await api('/vault/admin/token-requests/'+rid, {
+    method:'PUT', body:JSON.stringify({action:'approve', amount, admin_note:note})
+  });
+  if(!d) return;
+  if(d.error){ errEl.textContent=d.error; return; }
+  closeModal('approve-modal');
+  loadRequests();
+}
+
+function openDeny(rid){
+  document.getElementById('deny-rid').value = rid;
+  document.getElementById('deny-note').value = '';
+  document.getElementById('deny-err').textContent = '';
+  document.getElementById('deny-modal').classList.add('open');
+}
+async function submitDeny(){
+  const rid  = parseInt(document.getElementById('deny-rid').value);
+  const note = document.getElementById('deny-note').value.trim();
+  const d = await api('/vault/admin/token-requests/'+rid, {
+    method:'PUT', body:JSON.stringify({action:'deny', admin_note:note})
+  });
+  if(!d) return;
+  if(d.error){ document.getElementById('deny-err').textContent=d.error; return; }
+  closeModal('deny-modal');
+  loadRequests();
+}
+
+/* ── USAGE STATS ── */
+async function loadStats(){
+  const d = await api('/vault/admin/stats');
+  if(!d) return;
+  const cards = document.getElementById('stat-cards');
+  cards.innerHTML = [
+    {n: d.users_count,        l: 'Active Users'},
+    {n: fmtN(d.total_tokens), l: 'Total Tokens Used'},
+    {n: d.conversations_count,l: 'Conversations'},
+    {n: d.messages_count,     l: 'Messages'},
+  ].map(c=>`<div class="stat-card"><div class="stat-n">${c.n}</div><div class="stat-l">${c.l}</div></div>`).join('');
+
+  // Daily chart
+  const daily = d.daily_tokens || [];
+  const maxT = Math.max(1, ...daily.map(x=>x.tokens));
+  document.getElementById('daily-chart').innerHTML = daily.length
+    ? daily.map(x=>`
+        <div class="bar-col">
+          <div class="bar-fill" style="height:${Math.max(4, Math.round(x.tokens/maxT*72))}px" title="${x.day}: ${fmtN(x.tokens)} tokens"></div>
+          <div class="bar-label">${x.day.slice(5)}</div>
+        </div>
+      `).join('')
+    : '<div style="color:var(--c-muted);font-size:11px;align-self:center">Chưa có dữ liệu</div>';
+
+  // Top users
+  document.getElementById('top-users-tbody').innerHTML = (d.top_users||[]).map(u=>{
+    const pct = Math.min(100, Math.round(u.token_used/Math.max(u.token_quota,1)*100));
+    return `<tr>
+      <td><strong>${u.display_name||u.username}</strong> <span style="font-size:10px;color:var(--c-muted)">@${u.username}</span></td>
+      <td>${fmtN(u.token_used)}</td>
+      <td>${fmtN(u.token_quota)}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div class="quota-bar" style="width:80px"><div class="quota-fill" style="width:${pct}%;background:${pct>=95?'var(--red)':pct>=80?'var(--yellow)':'var(--green)'}"></div></div>
+          <span style="font-size:11px">${pct}%</span>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+/* ── SETUP ── */
+async function loadSetup(){
+  const d = await api('/vault/admin/stats');
+  if(!d) return;
+  document.getElementById('db-info').innerHTML = `
+    <div>👥 Users: <strong>${d.users_count}</strong></div>
+    <div>💬 Conversations: <strong>${d.conversations_count}</strong></div>
+    <div>📩 Messages: <strong>${d.messages_count}</strong></div>
+    <div>🪙 Total tokens used: <strong>${fmtN(d.total_tokens)}</strong></div>
+    <div style="margin-top:8px;font-size:10px;color:var(--c-dim)">DB: artifacts/_workspace/vault/vault.db</div>
+  `;
+  const saved = localStorage.getItem('vault_default_quota');
+  if(saved) document.getElementById('default-quota').value = saved;
+}
+
+async function bulkCreateUsers(){
+  const lines = document.getElementById('bulk-users').value.split('\n').map(l=>l.trim()).filter(Boolean);
+  const resultEl = document.getElementById('bulk-result');
+  resultEl.innerHTML = '';
+  if(!lines.length) return;
+  const defaultQuota = parseInt(localStorage.getItem('vault_default_quota')||'50000');
+  let ok=0, fail=0, msgs=[];
+  for(const line of lines){
+    const parts = line.split(/\s+/);
+    const username = (parts[0]||'').toLowerCase();
+    const pw       = parts[1] || '';
+    const roles    = (parts[2]||'BA').split(',').map(r=>r.trim().toUpperCase());
+    const quota    = parseInt(parts[3]||defaultQuota)||defaultQuota;
+    if(!username||!pw){ msgs.push(`<span style="color:var(--red)">✗ Skip: "${line}" — thiếu username/password</span>`); fail++; continue; }
+    const d = await api('/vault/admin/users', {
+      method:'POST', body:JSON.stringify({username,display_name:username,password:pw,roles,token_quota:quota,is_admin:false})
+    });
+    if(d && d.ok){ msgs.push(`<span style="color:var(--green)">✓ ${username} (${roles.join(',')}, quota=${fmtN(quota)})</span>`); ok++; }
+    else { msgs.push(`<span style="color:var(--red)">✗ ${username}: ${d?.error||'error'}</span>`); fail++; }
+  }
+  resultEl.innerHTML = `<div style="margin-bottom:6px;font-weight:600">${ok} thành công, ${fail} lỗi:</div>` + msgs.join('<br>');
+  if(ok) loadUsers();
+}
+
+function saveDefaultQuota(){
+  const v = parseInt(document.getElementById('default-quota').value)||50000;
+  localStorage.setItem('vault_default_quota', v);
+  const msg = document.getElementById('quota-save-msg');
+  msg.textContent = '✓ Đã lưu';
+  setTimeout(()=>msg.textContent='', 2000);
+}
+
+/* ── MODAL ── */
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+document.addEventListener('click',e=>{
+  if(e.target.classList.contains('modal')) e.target.classList.remove('open');
+});
+
+/* ── INIT ── */
+async function init(){
+  if(!_session){ location.href='/vault/'; return; }
+  // Verify admin
+  const me = await api('/vault/auth/me');
+  if(!me || !me.user?.is_admin){ location.href='/vault/'; return; }
+  // Load default tab
+  loadUsers();
+  // Load pending count for badge
+  api('/vault/admin/token-requests').then(d=>{
+    if(!d) return;
+    const p = (d.requests||[]).filter(r=>r.status==='pending').length;
+    const b = document.getElementById('pending-badge');
+    b.textContent = p; b.style.display = p ? '' : 'none';
+  });
+}
+init();
+</script>
+</body>
+</html>

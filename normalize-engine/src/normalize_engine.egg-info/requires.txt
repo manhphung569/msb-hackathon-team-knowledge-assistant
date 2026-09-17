@@ -1,0 +1,9 @@
+pdfplumber
+python-docx
+python-pptx
+openpyxl
+extract-msg
+typer
+pymupdf
+openai
+beautifulsoup4

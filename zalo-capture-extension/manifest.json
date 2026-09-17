@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "Thu thập tri thức (Zalo)",
+  "version": "2.0.0",
+  "description": "Lưu đoạn bạn tự bôi đen (hoặc đọc toàn bộ tin đang hiển thị) trên Zalo Web vào kho tri thức cá nhân (D:\\Projects\\repos\\pdlc-vault, chọn đúng tenant/project), qua graphrag serve chạy cục bộ. Mở popup để xem đoạn đang mở đã capture chưa.",
+  "permissions": ["activeTab", "scripting", "storage"],
+  "host_permissions": [
+    "http://127.0.0.1/*",
+    "http://localhost/*",
+    "https://*.zadn.vn/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Thu thập tri thức"
+  }
+}

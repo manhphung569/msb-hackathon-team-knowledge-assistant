@@ -1,0 +1,41 @@
+[project]
+name = "graphrag-engine"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    # LLM & embedding
+    "anthropic",
+    "openai",
+    "voyageai",
+    "fastembed",         # embedding local, không cần API key (mặc định khi thiếu key/confidential)
+    # vector store MVP
+    "lancedb",
+    "pyarrow",
+    # utils
+    "pyyaml",
+    "typer",              # CLI (graphrag build / graphrag query)
+    "watchdog",            # ingestion/watcher.py
+]
+
+[project.optional-dependencies]
+graph = [
+    "kuzu",               # graph store MVP — Giai đoạn 2, chưa dùng trong Giai đoạn 1
+]
+api = [
+    "fastapi",             # graphrag serve — API cho người khác truy vấn (đọc-hạn-chế, xem README)
+    "uvicorn",
+]
+scale = [
+    "qdrant-client",
+    "neo4j",
+]
+local-llm = [
+    "ollama",              # LLM local cho extraction/generation trên tài liệu confidential — Giai đoạn 2
+]
+local-ocr = [
+    "pytesseract",          # wrapper Python cho Tesseract OCR — cần cài binary Tesseract riêng, xem README
+    "Pillow",
+]
+
+[project.scripts]
+graphrag = "graphrag.cli:app"

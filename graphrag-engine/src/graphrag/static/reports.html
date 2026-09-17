@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Khu báo cáo</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page: #f4f2ec;
+    --surface: #fffdf8;
+    --surface-2: #f0ece3;
+    --text: #111111;
+    --muted: #6a665c;
+    --border: rgba(17, 17, 17, 0.12);
+    --accent: #9f1f28;
+    --accent-2: #264653;
+    --good: #137d2c;
+    --warn: #c17d10;
+    --bad: #b42318;
+    --shadow: 0 1px 2px rgba(17,17,17,.05), 0 10px 28px rgba(17,17,17,.06);
+    --radius: 16px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: Georgia, "Times New Roman", serif;
+    background:
+      radial-gradient(circle at top left, rgba(159,31,40,.08), transparent 32%),
+      linear-gradient(180deg, #f8f5ef 0%, var(--page) 100%);
+    color: var(--text);
+  }
+  .shell {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 28px 20px 40px;
+  }
+  .hero {
+    display: grid;
+    grid-template-columns: 1.2fr .8fr;
+    gap: 18px;
+    margin-bottom: 18px;
+  }
+  .panel, .report-card, .detail-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+  .panel {
+    padding: 20px 22px;
+  }
+  h1, h2, h3 { margin: 0; }
+  h1 {
+    font-size: 32px;
+    line-height: 1.08;
+    letter-spacing: -.02em;
+  }
+  .hero p, .muted {
+    color: var(--muted);
+  }
+  .config {
+    padding: 18px 20px;
+  }
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 700;
+    display: block;
+    margin-bottom: 8px;
+  }
+  .row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  input[type="password"] {
+    flex: 1 1 260px;
+    min-height: 38px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: #faf8f3;
+    font: inherit;
+  }
+  button, .button-link {
+    min-height: 36px;
+    border: none;
+    border-radius: 999px;
+    padding: 0 14px;
+    background: var(--accent);
+    color: #fff;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  button.secondary, .button-link.secondary {
+    background: transparent;
+    color: var(--accent-2);
+    border: 1px solid var(--border);
+  }
+  .status {
+    min-height: 18px;
+    margin-top: 10px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .status.ok { color: var(--good); }
+  .status.error { color: var(--bad); }
+  .grid {
+    display: grid;
+    grid-template-columns: minmax(360px, 420px) minmax(0, 1fr);
+    gap: 18px;
+  }
+  .list {
+    display: grid;
+    gap: 14px;
+  }
+  .report-card {
+    padding: 16px 18px;
+  }
+  .report-card.active {
+    border-color: rgba(159,31,40,.45);
+    box-shadow: 0 0 0 2px rgba(159,31,40,.08), var(--shadow);
+  }
+  .report-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: start;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    padding: 0 10px;
+    border-radius: 999px;
+    background: var(--surface-2);
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .badge.ok { background: rgba(19,125,44,.12); color: var(--good); }
+  .badge.failed { background: rgba(180,35,24,.12); color: var(--bad); }
+  .badge.never-built { background: rgba(193,125,16,.12); color: var(--warn); }
+  .meta {
+    margin-top: 10px;
+    display: grid;
+    gap: 6px;
+    font-size: 13px;
+  }
+  .actions {
+    margin-top: 12px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .detail-card {
+    padding: 18px 20px;
+    min-height: 520px;
+  }
+  pre {
+    margin: 0;
+    padding: 14px;
+    overflow: auto;
+    border-radius: 14px;
+    background: #f8f5ef;
+    border: 1px solid var(--border);
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .section {
+    margin-top: 16px;
+  }
+  .section:first-of-type {
+    margin-top: 14px;
+  }
+  .issue-list {
+    display: grid;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .issue {
+    border-left: 4px solid var(--border);
+    background: #faf8f3;
+    padding: 10px 12px;
+    border-radius: 10px;
+  }
+  .issue.error { border-left-color: var(--bad); }
+  .issue.warning { border-left-color: var(--warn); }
+  @media (max-width: 980px) {
+    .hero, .grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+  <div class="shell">
+    <div class="hero">
+      <section class="panel">
+        <span class="eyebrow">Report Platform</span>
+        <h1>Khu báo cáo riêng trên <code>localhost:8000</code></h1>
+        <p>
+          Đây là vùng tập trung cho các report generator có kiểm định dữ liệu. Mỗi report
+          được build theo registry riêng, có snapshot và quality gate trước khi xuất artifact.
+        </p>
+      </section>
+      <section class="panel config">
+        <span class="eyebrow">OWNER_API_KEY</span>
+        <div class="row">
+          <input id="ownerKey" type="password" placeholder="Dán key từ .env">
+          <button id="saveKey" class="secondary">Lưu</button>
+        </div>
+        <div id="status" class="status"></div>
+      </section>
+    </div>
+
+    <div class="grid">
+      <section class="list" id="reportList"></section>
+      <section class="detail-card">
+        <div class="report-head">
+          <div>
+            <span class="eyebrow">Chi tiết</span>
+            <h2 id="detailTitle">Chọn một báo cáo</h2>
+          </div>
+          <span id="detailBadge" class="badge">Chưa chọn</span>
+        </div>
+        <p id="detailDescription" class="muted">Danh sách bên trái sẽ hiện các report đã được đăng ký.</p>
+
+        <div class="section">
+          <h3>Build Summary</h3>
+          <pre id="detailSummary">Chưa có dữ liệu.</pre>
+        </div>
+
+        <div class="section">
+          <h3>Quality Gate</h3>
+          <div id="issueList" class="issue-list">
+            <div class="issue">Chưa có bản build nào.</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>Snapshot Excerpt</h3>
+          <pre id="detailSnapshot">Chưa có snapshot.</pre>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script src="reports.js?v=20260812a"></script>
+</body>
+</html>

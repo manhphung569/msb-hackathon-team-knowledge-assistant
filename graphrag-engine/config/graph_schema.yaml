@@ -1,0 +1,32 @@
+# Ontology cho graph layer — điều chỉnh dần khi extraction thực tế cho thấy thiếu loại nào.
+# Đây là bản khởi điểm, suy ra từ các loại tài liệu đã có trong artifacts/02_Work/Msb/DMUDCNS/
+# (báo cáo, backlog, MoM, tài liệu giải pháp cho các dự án MSBPay, eKYC, Magnet, DIP...).
+
+nodes:
+  Document:
+    props: [doc_id, path, title, doc_type, date, sensitivity]
+  Project:
+    props: [name, department]          # vd: MSBPay, New_eKYC, Magnet, DIP
+  System:
+    props: [name]                       # vd: Kiosk, MConnect, ePay, DIP
+  Person:
+    props: [name]                       # người xuất hiện trong MoM, báo cáo
+  Organization:
+    props: [name]                       # đối tác/ngân hàng đối chiếu, vd Techcombank
+  Concept:
+    props: [term, definition]           # thuật ngữ nghiệp vụ, vd "eKYC", "Chi hộ"
+  Chunk:
+    props: [chunk_id, vector_id]        # node neo để join sang vector_store, không phải "entity" thật
+
+edges:
+  MENTIONS:        { from: Chunk, to: [Project, System, Person, Organization, Concept] }
+  BELONGS_TO:       { from: Document, to: Project }
+  PART_OF:          { from: System, to: Project }
+  DEPENDS_ON:        { from: [System, Project], to: [System, Project] }
+  OWNED_BY:          { from: Project, to: Person }
+  ATTENDED:          { from: Person, to: Document }   # Document.doc_type == "MoM"
+  RELATED_TO:         { from: Concept, to: Concept }   # fallback chung, dùng khi không khớp loại quan hệ cụ thể nào ở trên
+
+# Ghi chú: extraction nên map thẳng vào danh sách trên. Nếu LLM đề xuất loại node/edge
+# ngoài danh sách, ghi log lại để review định kỳ và mở rộng ontology có chủ đích,
+# thay vì để graph phình ra tự do không kiểm soát.

@@ -98,13 +98,28 @@ def _format_subgraph_facts(edges) -> str:
     return "\n".join(lines)
 
 
+_MIXED_MODE_MIN_WORDS = 4  # câu hỏi từ ngần này từ trở lên coi là có khả năng đa ý, không chỉ tra cứu đơn thuần
+
+
 def _select_planner_mode(question: str, variants: list[str], exact_mode: bool) -> str:
+    """FIX 2026-09-18 (lỗi gốc): trước đây exact_mode=True luôn trả "exact" (bỏ qua hẳn semantic/
+    keyword search) miễn tìm đủ >=3 khớp chữ chính xác — bất kể câu hỏi dài/nhiều ý ra sao. Hệ
+    quả thật: câu hỏi ghép nhiều vế ("Theo TKA-1, vì sao X, code xử lý Y thế nào, team quyết
+    định Z gì") chỉ cần TỒN TẠI mã ticket là mọi chunk liên quan mà KHÔNG nhắc đúng mã đó (MoM,
+    tài liệu kiến trúc, source code không comment mã ticket...) bị loại hoàn toàn khỏi kết quả,
+    dù ngữ nghĩa liên quan rõ ràng — phát hiện thật khi build pillar Confluence/source-code cho
+    demo hackathon, phải vá tạm bằng cách thêm mã ticket vào từng tài liệu (không bền, mỗi tài
+    liệu mới lại dính lại). Sửa gốc: áp DÙNG CHUNG ngưỡng "câu hỏi đủ dài coi như đa ý" cho cả
+    nhánh exact_mode (trước đây ngưỡng này chỉ tính khi exact_mode=False) — câu tra cứu ngắn
+    thật sự ("TKA-1 status?") vẫn ở "exact" (nhanh, không tốn thêm 1 lượt search), câu ghép
+    nhiều vế tự động lên "mixed" để semantic/keyword search luôn chạy cùng, không còn bị loại
+    trừ lẫn nhau."""
     word_count = len([part for part in question.split() if part.strip()])
-    if exact_mode and len(variants) > 1:
+    if exact_mode and (len(variants) > 1 or word_count >= _MIXED_MODE_MIN_WORDS):
         return "mixed"
     if exact_mode:
         return "exact"
-    if len(variants) > 1 or word_count >= 4:
+    if len(variants) > 1 or word_count >= _MIXED_MODE_MIN_WORDS:
         return "mixed"
     return "semantic"
 

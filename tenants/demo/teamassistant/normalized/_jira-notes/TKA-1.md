@@ -4,7 +4,7 @@ issue_key: TKA-1
 status: To Do
 assignee: Phùng Đức Mạnh
 priority: Medium
-date: '2026-09-17'
+date: '2026-09-18'
 project: teamassistant
 doc_type: backlog
 sensitivity: internal

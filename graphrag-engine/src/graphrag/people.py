@@ -48,7 +48,7 @@ _LOOSE_BRACKETED_EMAIL = re.compile(
 )
 
 # Dòng dạng wiki-link "[chữ hiển thị|mailto:email]" — cũng do export Jira/Confluence sinh ra
-# (vd "Nguyen Van A (Phòng B) [nguyenvana@example.com|mailto:nguyenvana@example.com]") — cùng
+# (vd "Nguyen Van A (Phong B) [nguyenvana@example.com|mailto:nguyenvana@example.com]") — cùng
 # lý do quét từng dòng riêng như trên.
 _WIKI_MAILTO_LINK = re.compile(
     r'([^\n\[\]|<>:]{0,80}?)\s*\[[^\[\]|]*\|mailto:([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})\]'

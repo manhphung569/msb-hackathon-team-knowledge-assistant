@@ -2,9 +2,9 @@
 
 **Track:** AI FOR MY TEAM. Team: Phùng Đức Mạnh (DM&UDCNS) + Nguyễn Văn Bằng Nam (PTGPQLBH).
 
-Một trợ lý tri thức hội tụ 3 nguồn phân mảnh — **source code**, **Jira backlog**, và
-**meeting/chat/OCR** — vào **1 index tìm kiếm ngữ nghĩa duy nhất**, trả lời qua 1 giao diện chat
-có trích dẫn nguồn.
+Một trợ lý tri thức hội tụ 4 nguồn phân mảnh — **source code**, **Jira backlog**,
+**Confluence (BRD/kiến trúc/thiết kế)**, và **meeting/chat/OCR** — vào **1 index tìm kiếm ngữ
+nghĩa duy nhất**, trả lời qua 1 giao diện chat có trích dẫn nguồn.
 
 > ⚠️ Toàn bộ dữ liệu trong `tenants/demo/` là **giả lập 100%** (kịch bản "NotifyHub retry bug")
 > — không chứa dữ liệu thật của MSB/TNTalent/TNEX. Xem `tenants/demo/README.md`.
@@ -12,11 +12,12 @@ có trích dẫn nguồn.
 ## Kiến trúc
 
 ```
-[source code]      [Jira Cloud]        [Zalo chat + OCR / meeting notes]
-      │                   │                          │
-      │            scripts/jira_sync.py       zalo-capture-extension
-      │                   │                          │
-      └───────────────────┴──────────────┬───────────┘
+[source code]  [Jira Cloud]  [Confluence]  [Zalo chat + OCR / meeting notes]
+      │              │             │                    │
+      │       jira_sync.py  confluence_sync.py   zalo-capture-extension
+      │       (+ tải đính kèm    │                       │
+      │        Jira -> normalize)│                       │
+      └──────────────┴───────────┴───────────┬───────────┘
                                           ▼
                     tenants/demo/teamassistant/normalized/  (Markdown, có frontmatter)
                                           │
@@ -38,7 +39,13 @@ có trích dẫn nguồn.
   `workbench/server/graphrag_client.py` và `workbench/SMOKE_TEST_HACKATHON.md`.
 - **zalo-capture-extension/** — Chrome extension bắt chat/ảnh Zalo, OCR local (Tesseract), ghi
   thẳng vào index qua `graphrag serve`.
-- **scripts/jira_sync.py** — đồng bộ issue Jira Cloud (REST API v3) thành note trong index.
+- **scripts/jira_sync.py** — đồng bộ issue Jira Cloud (REST API v3) thành note trong index, kèm
+  tải file đính kèm (pdf/docx/pptx/xlsx/msg/eml/html tự convert qua `normalize run`).
+- **scripts/confluence_sync.py** — đồng bộ trang Confluence (BRD/URD/SRS/kiến trúc/thiết kế)
+  thành note trong index — dùng chung credential với Jira nếu cùng site Atlassian.
+- **scripts/sync_hackathon_submission.py** (chạy trong `pdlc-vault`, không phải ở đây) — cơ chế
+  giữ repo này khớp với `pdlc-vault` (repo dev, có dữ liệu MSB thật) mỗi khi có cập nhật, kèm
+  gate tự động chặn rò rỉ dữ liệu thật trước khi commit.
 
 ## Setup nhanh
 
@@ -65,16 +72,24 @@ Mở `http://localhost:8766/vault/` — đăng nhập `admin`/`admin123` (đổi
 > "Theo TKA-1, vì sao thông báo thanh toán bị mất âm thầm, code hiện tại xử lý retry thế nào,
 > và team đã quyết định thay đổi gì trong cuộc họp để khắc phục?"
 
-Câu trả lời sẽ trích dẫn cả 3 nguồn: Jira (`_jira-notes/TKA-1.md`), source code
-(`source-code/notify-service/retry.md`), và MoM cuộc họp (`_chat-notes/...`).
+Câu trả lời sẽ trích dẫn cả 4 nguồn: Jira (`_jira-notes/TKA-1.md`), Confluence
+(`_confluence-docs/...`), source code (`source-code/notify-service/retry.md`), và MoM cuộc họp
+(`_chat-notes/...`).
 
-## Đồng bộ Jira (tuỳ chọn, cần site Jira Cloud riêng)
+## Đồng bộ Jira + Confluence (tuỳ chọn, cần site Atlassian riêng)
 
 ```bash
 copy scripts/.env.example scripts/.env   # điền JIRA_BASE_URL/JIRA_API_TOKEN/JIRA_EMAIL
+
 graphrag-engine/.venv/Scripts/python scripts/jira_sync.py \
   --tenant-root tenants/demo/teamassistant --jql "project = TKA"
+  # --no-attachments để bỏ qua tải file đính kèm
+
+graphrag-engine/.venv/Scripts/python scripts/confluence_sync.py \
+  --tenant-root tenants/demo/teamassistant --cql 'space = "YOUR_SPACE" AND type = page'
 ```
+Sau khi tải file đính kèm Jira, chạy thêm `normalize run --root tenants/demo/teamassistant`
+rồi `graphrag build` lại để đưa vào index.
 
 ## GreenNode AI Agent Platform
 

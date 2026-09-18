@@ -57,7 +57,13 @@ if _ENV_FILE.exists():
             if _k and _k not in os.environ:
                 os.environ[_k] = _v
 
-_FIELDS = "summary,status,assignee,priority,description,updated,issuetype"
+_FIELDS = "summary,status,assignee,priority,description,updated,issuetype,attachment"
+
+# normalize-engine tự convert được đúng các đuôi này (xem normalize-engine/src/normalize/
+# pipeline.py _CONVERTERS) — file khác đuôi vẫn tải về (để không mất dữ liệu) nhưng KHÔNG tự
+# vào index cho tới khi có converter thủ công, xem CLAUDE.md "Định dạng file & tri thức chưa
+# đọc được".
+_CONVERTIBLE_EXTENSIONS = {".pdf", ".docx", ".pptx", ".xlsx", ".msg", ".eml", ".html", ".htm"}
 
 
 class JiraSyncError(RuntimeError):
@@ -108,6 +114,53 @@ def _fetch_issues(base_url: str, email: str, token: str, jql: str) -> list[dict]
     return data.get("issues", [])
 
 
+def _download_attachments(
+    issue: dict, tenant_root: Path, email: str, token: str
+) -> tuple[list[str], list[str]]:
+    """Tải file đính kèm của 1 issue vào artifacts/_jira-attachments/<KEY>/<filename> — ĐÚNG
+    quy ước artifacts/ đã có, để normalize-engine's pipeline.py tự convert bằng converter sẵn
+    có (không viết converter riêng ở đây — tái dùng 100% pdf/docx/pptx/xlsx đã có). Trả về
+    (danh sách file convert được, danh sách file KHÔNG convert được — vẫn tải về nhưng cần xử
+    lý thủ công, xem CLAUDE.md)."""
+    attachments = (issue.get("fields") or {}).get("attachment") or []
+    if not attachments:
+        return [], []
+
+    key = issue["key"]
+    out_dir = tenant_root / "artifacts" / "_jira-attachments" / key
+    auth = base64.b64encode(f"{email}:{token}".encode("utf-8")).decode("ascii")
+    convertible: list[str] = []
+    unconvertible: list[str] = []
+
+    for att in attachments:
+        filename = att.get("filename") or ""
+        content_url = att.get("content") or ""
+        if not filename or not content_url:
+            continue
+        ext = Path(filename).suffix.lower()
+        req = urllib.request.Request(
+            content_url, headers={"Authorization": f"Basic {auth}"}
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=60) as resp:
+                data = resp.read()
+        except (urllib.error.HTTPError, urllib.error.URLError) as e:
+            print(f"    [CẢNH BÁO] Không tải được {filename} ({key}): {e}", file=sys.stderr)
+            continue
+
+        out_dir.mkdir(parents=True, exist_ok=True)
+        # Tên file y hệt Jira đặt — có thể trùng tên giữa nhiều lần đính kèm, chấp nhận ghi đè
+        # (idempotent, giống cách sync() ghi đè note issue mỗi lần chạy lại).
+        (out_dir / filename).write_bytes(data)
+        rel = f"artifacts/_jira-attachments/{key}/{filename}"
+        if ext in _CONVERTIBLE_EXTENSIONS:
+            convertible.append(rel)
+        else:
+            unconvertible.append(rel)
+
+    return convertible, unconvertible
+
+
 def _issue_to_note(issue: dict, project: str) -> tuple[str, str]:
     """Trả về (issue_key, nội dung file .md). Frontmatter build qua yaml.safe_dump — KHÔNG
     hand-format f-string trực tiếp vào khối YAML: summary/assignee/status tới từ Jira thật (dù
@@ -149,7 +202,10 @@ def _issue_to_note(issue: dict, project: str) -> tuple[str, str]:
     return key, content
 
 
-def sync(tenant_root: Path, base_url: str, email: str, token: str, jql: str) -> int:
+def sync(
+    tenant_root: Path, base_url: str, email: str, token: str, jql: str,
+    download_attachments: bool = True,
+) -> int:
     project = tenant_root.name
     out_dir = tenant_root / "normalized" / "_jira-notes"
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -159,13 +215,36 @@ def sync(tenant_root: Path, base_url: str, email: str, token: str, jql: str) -> 
         print("Không tìm thấy issue nào khớp JQL — kiểm tra lại --jql hoặc quyền truy cập token.")
         return 0
 
+    all_convertible: list[str] = []
+    all_unconvertible: list[str] = []
     for issue in issues:
         key, content = _issue_to_note(issue, project)
         path = out_dir / f"{key}.md"
         path.write_text(content, encoding="utf-8")
         print(f"  {key} -> {path.relative_to(tenant_root.parent.parent)}")
 
-    print(f"Đã đồng bộ {len(issues)} issue vào {out_dir}")
+        if download_attachments:
+            convertible, unconvertible = _download_attachments(issue, tenant_root, email, token)
+            for rel in convertible:
+                print(f"    + đính kèm (sẽ tự convert): {rel}")
+            for rel in unconvertible:
+                print(f"    + đính kèm (CẦN xử lý thủ công, đuôi chưa hỗ trợ): {rel}")
+            all_convertible += convertible
+            all_unconvertible += unconvertible
+
+    print(f"\nĐã đồng bộ {len(issues)} issue vào {out_dir}")
+    if all_convertible:
+        print(
+            f"Đã tải {len(all_convertible)} file đính kèm convert được — chạy tiếp:\n"
+            f"  normalize run --root {tenant_root}\n"
+            "để sinh bản .md tương ứng trong normalized/ trước khi graphrag build."
+        )
+    if all_unconvertible:
+        print(
+            f"CẢNH BÁO: {len(all_unconvertible)} file đính kèm đuôi chưa hỗ trợ tự động "
+            "(xem CLAUDE.md mục \"Định dạng file & tri thức chưa đọc được\") — vẫn nằm trong "
+            "artifacts/_jira-attachments/, cần xử lý thủ công nếu muốn đưa vào tri thức."
+        )
     return len(issues)
 
 
@@ -178,6 +257,8 @@ def main() -> None:
     parser.add_argument("--jira-email", default=os.environ.get("JIRA_EMAIL", ""),
                          help="mặc định đọc JIRA_EMAIL trong scripts/.env")
     parser.add_argument("--jql", default="", help='vd "project = TKA" — rỗng = mọi issue token thấy được')
+    parser.add_argument("--no-attachments", action="store_true",
+                         help="bỏ qua tải file đính kèm (mặc định CÓ tải)")
     args = parser.parse_args()
 
     token = os.environ.get("JIRA_API_TOKEN", "")
@@ -197,7 +278,8 @@ def main() -> None:
         sys.exit(1)
 
     try:
-        sync(tenant_root, args.jira_base_url, args.jira_email, token, args.jql)
+        sync(tenant_root, args.jira_base_url, args.jira_email, token, args.jql,
+             download_attachments=not args.no_attachments)
     except JiraSyncError as e:
         print(f"Lỗi đồng bộ Jira: {e}", file=sys.stderr)
         sys.exit(1)

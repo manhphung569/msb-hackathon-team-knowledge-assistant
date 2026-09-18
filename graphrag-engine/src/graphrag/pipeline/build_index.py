@@ -14,6 +14,7 @@ from ..graph_store import try_open as try_open_graph_store
 from ..ingestion.build_history import append_build_event
 from ..ingestion.dedup import filter_changed, load_index_meta, load_state, save_index_meta, save_state
 from ..ingestion.loader import SourceDocument, iter_documents
+from ..ingestion.source_code import iter_source_code_documents
 from ..types import Chunk, GraphEdge, GraphNode
 from ..vector_store.lancedb_store import LanceDBStore
 
@@ -123,6 +124,18 @@ def build_index(
 ) -> int:
     started = time.perf_counter()
     all_docs = list(iter_documents(settings))
+
+    # Nạp source code trực tiếp (nếu tenant có khai source_code_paths) — cố tình bọc try/except
+    # RIÊNG quanh toàn bộ nguồn này, tách khỏi luồng đọc normalized/ ở trên: 1 lỗi bất ngờ khi
+    # quét source code (vd file lạ làm ast/os.walk crash ngoài dự kiến, dù từng file đã tự bắt
+    # lỗi riêng trong source_code.py) KHÔNG được phép làm mất luôn việc index MoM/Jira/Confluence
+    # hôm đó — đúng đánh đổi "đụng lõi engine" đã nêu rõ lúc thiết kế (2026-09-18), giảm nhẹ
+    # bằng cách cô lập điểm hỏng ở đây.
+    try:
+        all_docs += list(iter_source_code_documents(settings))
+    except Exception as e:
+        print(f"  [CẢNH BÁO] Lỗi khi nạp source code, bỏ qua nguồn này cho lượt build này: {e}")
+
     if not all_docs:
         print(f"Không tìm thấy tài liệu .md nào trong {settings.normalized_dir}")
         return 0

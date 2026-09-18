@@ -4,12 +4,19 @@ import hashlib
 
 from ..config import Settings
 from ..types import Chunk, SourceDocument
-from .splitter import chunk_document
+from .code_splitter import split_python_by_function
+from .splitter import chunk_document, chunk_sections
 
 
 def build_chunks(doc: SourceDocument, settings: Settings) -> list[Chunk]:
     cfg = settings.chunking_by_doc_type.get(doc.doc_type, settings.chunking_default)
-    sections = chunk_document(doc.text, cfg["chunk_size"], cfg["chunk_overlap"])
+    if doc.doc_type == "source_code":
+        # Tách theo ranh giới hàm/class (ast, không phải LLM) — KHÔNG dùng split_by_heading,
+        # code không có heading markdown. Xem chunking/code_splitter.py cho lý do thiết kế đầy
+        # đủ (quyết định 2026-09-18: bỏ sinh file markdown/LLM tóm tắt lúc index).
+        sections = chunk_sections(split_python_by_function(doc.text), cfg["chunk_size"], cfg["chunk_overlap"])
+    else:
+        sections = chunk_document(doc.text, cfg["chunk_size"], cfg["chunk_overlap"])
     chunks: list[Chunk] = []
     for i, section in enumerate(sections):
         text = section.text.strip()

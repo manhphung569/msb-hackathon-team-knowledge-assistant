@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import yaml
@@ -47,6 +47,10 @@ class Settings:
     chunking_default: dict
     chunking_by_doc_type: dict
     default_project: str | None = None
+    # [{"path": "D:\\...\\some-repo", "label": "some-repo"}, ...] — thư mục source code THẬT
+    # (không phải bản copy) để ingestion/source_code.py đọc trực tiếp lúc build. Chỉ đọc, không
+    # bao giờ ghi vào đây. Rỗng = tenant này chưa khai nguồn source code nào.
+    source_code_paths: list[dict] = field(default_factory=list)
 
     @classmethod
     def load(cls, root: Path = PROJECT_ROOT, tenant_root: Path | None = None) -> "Settings":
@@ -72,6 +76,7 @@ class Settings:
             cache_dir = (tenant_root / "data" / "cache").resolve()
 
             default_project = tenant_root.name
+            source_code_paths: list[dict] = []
             tenant_settings_path = tenant_root / "config" / "settings.yaml"
             if tenant_settings_path.exists():
                 tenant_raw = yaml.safe_load(tenant_settings_path.read_text(encoding="utf-8")) or {}
@@ -81,12 +86,15 @@ class Settings:
                     raw["visibility_rules"] = tenant_raw["visibility_rules"]
                 if "default_project" in tenant_raw:
                     default_project = tenant_raw["default_project"]
+                if "source_code_paths" in tenant_raw:
+                    source_code_paths = tenant_raw["source_code_paths"]
         else:
             normalized_dir = (root / paths["normalized_dir"]).resolve()
             vector_index_dir = (root / paths["vector_index_dir"]).resolve()
             graph_db_dir = (root / paths["graph_db_dir"]).resolve()
             cache_dir = (root / paths["cache_dir"]).resolve()
             default_project = None
+            source_code_paths = []
 
         return cls(
             normalized_dir=normalized_dir,
@@ -113,6 +121,7 @@ class Settings:
             chunking_default=chunking_raw["default"],
             chunking_by_doc_type=chunking_raw.get("by_doc_type", {}),
             default_project=default_project,
+            source_code_paths=source_code_paths,
         )
 
 

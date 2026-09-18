@@ -111,21 +111,35 @@ def query(
     typer.echo(f"Retrieval trace: {retrieval_trace}")
     typer.echo(f"\n{len(result['chunks'])} chunk liên quan:\n")
     common_normalized_dir = COMMON_TENANT_ROOT / "normalized"
+    # source-code chunk (source_channel="source-code", xem ingestion/source_code.py) có
+    # source_path dạng "source-code/<label>/<rel>" trỏ ra file THẬT ngoài normalized/ (không
+    # phải bản copy) — không thể check tồn tại bằng root normalized/common như mọi chunk khác,
+    # cần tự map lại <label> -> path thật qua chính settings.source_code_paths.
+    code_roots = {entry.get("label") or "": Path(entry.get("path", "")) for entry in settings.source_code_paths}
     for c in result["chunks"]:
         mark = "x" if c.chunk_id in included else " "
         loc = f" (dòng {c.start_line}-{c.end_line})" if c.start_line else ""
-        # Federation (Phase 5): chunk tu tenants/_common co source_path tuong doi theo normalized/
-        # CUA _common, khong phai cua tenant dang query (settings.normalized_dir) - phai check
-        # dung root, khac se bao sai "file không tồn tại" cho moi chunk _common. KHONG dung
-        # c.project de nhan dien - field nay co the stale (chunk chua duoc re-index tu khi loader.py
-        # doi cach tinh project, project van con la ten file cu tu ban build truoc) - check thang
-        # xem file that su nam o root nao, dang tin cay hon metadata luu san trong index.
-        primary_path = settings.normalized_dir / c.source_path
-        from_common = not primary_path.exists() and (common_normalized_dir / c.source_path).exists()
-        root = common_normalized_dir if from_common else settings.normalized_dir
-        tag = " [_common]" if from_common else ""
+        tag = ""
+        if c.source_channel == "source-code":
+            parts = c.source_path.split("/", 2)
+            label = parts[1] if len(parts) >= 2 else ""
+            rel = parts[2] if len(parts) >= 3 else ""
+            code_root = code_roots.get(label)
+            file_exists = bool(code_root) and (code_root / rel).exists()
+        else:
+            # Federation (Phase 5): chunk tu tenants/_common co source_path tuong doi theo
+            # normalized/ CUA _common, khong phai cua tenant dang query (settings.normalized_dir)
+            # - phai check dung root, khac se bao sai "file không tồn tại" cho moi chunk _common.
+            # KHONG dung c.project de nhan dien - field nay co the stale (chunk chua duoc
+            # re-index tu khi loader.py doi cach tinh project) - check thang xem file that su
+            # nam o root nao, dang tin cay hon metadata luu san trong index.
+            primary_path = settings.normalized_dir / c.source_path
+            from_common = not primary_path.exists() and (common_normalized_dir / c.source_path).exists()
+            root = common_normalized_dir if from_common else settings.normalized_dir
+            tag = " [_common]" if from_common else ""
+            file_exists = (root / c.source_path).exists()
         line = f"  [{mark}] [{c.source_path}#{c.section or 'root'}]{loc}{tag}"
-        if not (root / c.source_path).exists():
+        if not file_exists:
             line += "  ⚠ file không tồn tại (đã move/xoá? index có thể cần purge — xem CLAUDE.md)"
         typer.echo(line)
 

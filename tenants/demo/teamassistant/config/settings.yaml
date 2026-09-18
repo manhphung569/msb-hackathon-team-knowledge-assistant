@@ -1,5 +1,6 @@
 # Overlay riêng cho tenant demo/teamassistant (Settings.load(tenant_root=...) chỉ đọc đúng
-# 3 khoá sensitivity_rules/visibility_rules/default_project từ file này — xem config.py).
+# 4 khoá sensitivity_rules/visibility_rules/default_project/source_code_paths từ file này —
+# xem config.py).
 #
 # visibility_rules: mặc định của engine là "owner" cho MỌI doc không khớp rule nào
 # (ingestion/loader.py _guess_visibility) — nghĩa là guest /query (mà workbench sẽ gọi qua
@@ -10,3 +11,10 @@ visibility_rules:
     visibility: shared
 
 default_project: teamassistant
+
+# Pilot pipeline nạp source code trực tiếp (2026-09-18) — dùng CHÍNH source của repo nộp bài
+# msb-hackathon-team-knowledge-assistant làm dữ liệu thử nghiệm thật (theo yêu cầu người dùng),
+# KHÔNG phải source thật của 1 dự án MSB nào — an toàn để dùng công khai trong demo.
+source_code_paths:
+  - path: D:\Projects\repos\msb-hackathon-team-knowledge-assistant\graphrag-engine\src
+    label: graphrag-engine

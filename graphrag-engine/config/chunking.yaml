@@ -11,3 +11,7 @@ by_doc_type:
   backlog:         { chunk_size: 256, chunk_overlap: 32 }   # bảng nhiều dòng ngắn, cần chunk nhỏ hơn
   mom:             { chunk_size: 384, chunk_overlap: 48 }   # biên bản họp
   solution_doc:    { chunk_size: 640, chunk_overlap: 96 }   # tài liệu giải pháp dài, nhiều mạch lý luận
+  # source_code: chunk theo hàm/class (chunking/code_splitter.py), giá trị dưới đây chỉ là
+  # fallback an toàn khi 1 hàm/class vẫn quá dài sau khi tách theo ranh giới — hiếm khi kích
+  # hoạt, hầu hết hàm đủ ngắn để không bị cắt tiếp.
+  source_code:     { chunk_size: 768, chunk_overlap: 64 }

@@ -76,13 +76,21 @@ def split_recursive(text: str, chunk_size: int, chunk_overlap: int) -> list[tupl
     return pieces
 
 
-def chunk_document(text: str, chunk_size: int, chunk_overlap: int) -> list[RawSection]:
-    """Cắt theo heading markdown trước; nếu 1 section vẫn dài hơn chunk_size thì cắt tiếp theo độ dài."""
+def chunk_sections(sections: list[RawSection], chunk_size: int, chunk_overlap: int) -> list[RawSection]:
+    """Áp cắt-theo-kích-thước (fallback khi 1 section vẫn dài hơn chunk_size) lên 1 danh sách
+    RawSection ĐÃ tách sẵn theo ranh giới có ý nghĩa (heading markdown, hoặc hàm/class code —
+    xem code_splitter.py) — tách riêng khỏi chunk_document() để 2 nguồn tách-ranh-giới khác
+    nhau (markdown vs code) dùng chung đúng 1 lớp an toàn kích thước, không copy-paste logic."""
     result: list[RawSection] = []
-    for section in split_by_heading(text):
+    for section in sections:
         base = section.start_line - 1  # dòng ngay trước khi section bắt đầu
         for piece_text, p_start, p_end in split_recursive(section.text, chunk_size, chunk_overlap):
             result.append(
                 RawSection(heading=section.heading, text=piece_text, start_line=base + p_start, end_line=base + p_end)
             )
     return result
+
+
+def chunk_document(text: str, chunk_size: int, chunk_overlap: int) -> list[RawSection]:
+    """Cắt theo heading markdown trước; nếu 1 section vẫn dài hơn chunk_size thì cắt tiếp theo độ dài."""
+    return chunk_sections(split_by_heading(text), chunk_size, chunk_overlap)

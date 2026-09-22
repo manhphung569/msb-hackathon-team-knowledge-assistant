@@ -104,6 +104,6 @@ trong `graphrag-engine/config/settings.yaml`.
 
 ## Demo / Pitch deck / Video
 
-- Demo link: *(điền sau khi deploy public)*
-- Pitch deck: *(điền link)*
-- Video demo: *(điền link)*
+- Demo link: *(điền sau khi deploy public — xem "Setup nhanh" ở trên để chạy local trong lúc chờ)*
+- Pitch deck: [`docs/pitch-deck.pdf`](docs/pitch-deck.pdf) (trong repo này)
+- Video demo: *(điền link Google Drive/YouTube sau khi quay)*

@@ -1,3 +1,5 @@
 .env
+.env.mcp-atlassian
+.venv-mcp-atlassian/
 __pycache__/
 *.pyc

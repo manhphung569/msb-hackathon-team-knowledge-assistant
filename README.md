@@ -105,5 +105,5 @@ trong `graphrag-engine/config/settings.yaml`.
 ## Demo / Pitch deck / Video
 
 - Demo link: https://drive.google.com/file/d/1GDaNV5BJZ35hYC-eGutXl5qdAeO7EFNZ/view?usp=sharing
-- Pitch deck: [`docs/pitch-deck.pdf`](docs/pitch-deck.pdf) (trong repo này) · bản Drive: https://drive.google.com/file/d/1dO5wEHNghDxCrCF-up8PhJRwcY07Y_uT/view?usp=sharing
+- Pitch deck: https://drive.google.com/file/d/1dO5wEHNghDxCrCF-up8PhJRwcY07Y_uT/view?usp=sharing
 - Video thuyết minh sản phẩm: https://drive.google.com/file/d/12K_R478Hoyuu1At4Xl-ZbfXKlmQ4bHnX/view?usp=sharing
